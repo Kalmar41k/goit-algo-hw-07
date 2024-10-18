@@ -13,7 +13,7 @@ from datetime import datetime, date, timedelta
 class Field:
     """Базовий клас для всіх полів, що зберігають значення."""
 
-    def __init__(self, value) -> None:
+    def __init__(self, value: str) -> None:
         self.value = value
 
     def __str__(self) -> str:
@@ -42,8 +42,8 @@ class Birthday(Field):
 
     def __init__(self, value: str) -> None:
         try:
-            birthday = datetime.strptime(value, "%d.%m.%Y").date()
-            super().__init__(birthday)
+            self.birthday_obj = datetime.strptime(value, "%d.%m.%Y").date()
+            super().__init__(value)
         except ValueError as e:
             raise ValueError("Invalid date format. Use DD.MM.YYYY") from e
 
@@ -135,11 +135,11 @@ class AddressBook(UserDict):
 
         for name, record in self.data.items():
             if record.birthday:
-                birthday_this_year = record.birthday.value.replace(year=today.year)
+                birthday_this_year = record.birthday.birthday_obj.replace(year=today.year)
                 days_until_birthday = (birthday_this_year - today).days
 
                 if days_until_birthday < 0:
-                    birthday_this_year = record.birthday.value.replace(year=today.year + 1)
+                    birthday_this_year = record.birthday.birthday_obj.replace(year=today.year + 1)
                     days_until_birthday = (birthday_this_year - today).days
 
                 if 0 <= days_until_birthday <= days:
@@ -160,7 +160,7 @@ class AddressBook(UserDict):
         return '\n'.join(str(record) for record in self.data.values())
 
 
-def parse_input(user_input):
+def parse_input(user_input: str) -> tuple:
     """Парсує команду, введену користувачем, і розділяє її на команду та аргументи."""
     cmd, *args = user_input.split()
     cmd = cmd.strip().lower()
@@ -184,7 +184,7 @@ def input_error(func):
     return inner
 
 @input_error
-def add_contact(args, book: AddressBook):
+def add_contact(args, book: AddressBook) -> str:
     """Додає контакт до екземпляру класу AddressBook."""
     if len(args) == 0 or len(args) > 2:
         raise IndexError("Arguments must be: <Name> (optional <Phone>).")
@@ -203,7 +203,7 @@ def add_contact(args, book: AddressBook):
     return message
 
 @input_error
-def change_contact(args, book: AddressBook):
+def change_contact(args, book: AddressBook) -> str:
     """Змінює номер телефону контакта в екземплярі класу AddressBook."""
     if len(args) <= 2 or len(args) > 3:
         raise IndexError("Arguments must be: <Name> <Old phone> <New phone>.")
@@ -218,7 +218,7 @@ def change_contact(args, book: AddressBook):
     return "Phone changed successfully."
 
 @input_error
-def find_phones(args, book: AddressBook):
+def find_phones(args, book: AddressBook) -> str:
     """Знаходить всі номери вказаного контакта."""
     if len(args) == 0 or len(args) > 1:
         raise IndexError("Arguments must be: <Name>.")
@@ -235,14 +235,14 @@ def find_phones(args, book: AddressBook):
     return phones
 
 @input_error
-def show_all_contacts(book: AddressBook):
+def show_all_contacts(book: AddressBook) -> AddressBook:
     """Виводить список контактів."""
     if book.data == {}:
         return "No contacts yet."
     return book
 
 @input_error
-def add_birthday(args, book: AddressBook):
+def add_birthday(args, book: AddressBook) -> str:
     """Вказує день народження контакту."""
     if len(args) <= 1 or len(args) > 2:
         raise IndexError("Arguments must be: <Name> <Birthday>.")
@@ -259,7 +259,7 @@ def add_birthday(args, book: AddressBook):
     return message
 
 @input_error
-def show_birthday(args, book: AddressBook):
+def show_birthday(args, book: AddressBook) -> str:
     """Виводить день народження вказаного контакта."""
     if len(args) == 0 or len(args) > 1:
         raise IndexError("Arguments must be: <Name>.")
@@ -269,7 +269,7 @@ def show_birthday(args, book: AddressBook):
     return book.show_birthday(name)
 
 @input_error
-def birthdays(book: AddressBook):
+def birthdays(book: AddressBook) -> list:
     """Виводить дати привітання контактів, у яких день народження в найближчі 7 днів."""
     if book.birthdays() == []:
         return "No upcoming birthdays yet."
